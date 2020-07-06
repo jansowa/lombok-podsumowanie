@@ -123,6 +123,28 @@ Można użyć tej adnotacji przy konkretnym parametrze konstruktora - wewnątrz 
 ### 1.11 @Getter(lazy=true)
 Umożliwia leniwe zaciąganie pól do obiektu. Używa java.util.concurrent.AtomicReference, dopiero przy użyciu getX() realnie otrzymuje wartość.
 
+### 1.12 @UtilityClass
+Dodaje prywatny konstruktor rzucający wyjątkiem i dodaje "static" do metod i pól. Do zastosowania w bezstanowych klasach pomocniczych, które mają tylko statyczne metody i nie powinny mieć instancji tworzonych przez konstruktor.
+Z Lombokiem:
+```java
+@UtilityClass
+public class SuperCalculatorUtils {
+    private final int TWO = 2;
+    public int addTwo(int x) {
+        return x+TWO;
+    }
+}
+```
+Bez Lomboka:
+```java
+public class SuperCalculatorUtils {
+    private static final int TWO = 2;
+    public static int addTwo(int x) {
+        return x+TWO;
+    }
+}
+```
+
 ### 1.12 Configuration system
 https://projectlombok.org/features/configuration <br>
 Umożliwia zablokowanie określonych funkcjonalności określonych przez zespół za niebezpieczne.
