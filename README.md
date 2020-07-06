@@ -3,13 +3,27 @@
 ## 1. Funkcjonalności
 
 ### 1.1 @AllArgsConstructor, @NoArgsConstructor, @RequiredArgsConstructor
-Generują konstruktory. RequiredArgsConstructor zawiera tylko pola finalne.
+Generują konstruktory. RequiredArgsConstructor zawiera tylko pola finalne. Umożliwiają dodanie adnotacji nad konstruktorem. Przykład:
+```java
+@AllArgsConstructor(onConstructor=@__(@Autowired))
+public class SomeSpringController {
+    private final CarRepository;
+    private final EmployeeRepository;
+    private final AnotherRepository;
+}
+```
+Powyższy przykład mocno redukuje kod użyty do wstrzyknięcia komponentów Springa.
 
 ### 1.2 @Getter, @Setter
 Generuje gettery/settery. Można używać nad nazwą klasy, lub przed konkretnym polem.<br>
 Umożliwia określenie modyfikatora dostępu:
 ```java
 @Setter(AccessLevel.PROTECTED) private String name;
+```
+Umożliwiają dodanie adnotacji do generowanego gettera/settera przy metodzie lub parametrze. Przykład:
+```java
+@Setter(onParam_=@Max(10000))
+private long id;
 ```
 
 ### 1.3 @Builder
