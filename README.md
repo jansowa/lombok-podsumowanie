@@ -25,17 +25,92 @@ Umożliwiają dodanie adnotacji do generowanego gettera/settera przy metodzie lu
 @Setter(onParam_=@Max(10000))
 private long id;
 ```
+<strong>Zagrożenia: 2.1, 2.4</strong>
 
 ### 1.3 @Builder
 Dodaje budowniczego do klasy. Ułatwia budowanie instancji, kiedy np. konstruktor ma wiele pól.
+```java
+@Builder
+@Data
+public class EmployeeEntity {
+    private int id;
+    private String name;
+    private String surname;
+    private int carId;
+    private String textInfo;
+
+    public static void main(String[] args) {
+        EmployeeEntity employee = EmployeeEntity.builder()
+            .id(100)
+            .name("Janek")
+            .surname("Kowalski")
+            .carId(123)
+            .textInfo("additional text")
+            .build();
+    }
+}
+```
 
 ### 1.4 @Data
 > All together now: A shortcut for @ToString, @EqualsAndHashCode, @Getter on all fields, @Setter on all non-final fields, and @RequiredArgsConstructor!
 
-Stosowanie tej adnotacji przy domyślnej konfiguracji ma sporo wad opisanych dalej.
+Z Lombokiem:
+```java
+@Data
+public class UserValue {
+    String name;
+    int age;
+    final String finalProperty;
+}
+```
+Bez Lomboka:
+```java
+public class UserValue {
+    String name;
+    int age;
+    final String finalProperty;
+
+    public UserValue(String finalProperty) {
+        this.finalProperty = finalProperty;
+    }
+    //GETTERY
+    //SETTERY BEZ PÓL FINALNYCH
+    //EQUALS
+    //HASHCODE
+    //TOSTRING
+}
+```
+
+<strong>Zagrożenia: 2.6</strong>
 
 ### 1.5 @Value
 Niemutowalny odpowiednik @Data. Ustawia wszystkie pola jako ``` private final ```, dodaje gettery, konstruktor, toString, hashCode, equals.
+<br>Z Lombokiem:
+```java
+@Value
+public class UserValue {
+    String name;
+    int age;
+}
+```
+Bez Lomboka:
+```java
+public final class UserValue {
+    private final String name;
+    private final int age;
+
+    public UserValue(String name, int age) {
+        this.name = name;
+        this.age = age;
+    }
+
+    //GETTERY
+    //HASHCODE
+    //EQUALS
+    //TOSTRING
+}
+```
+<strong>Zagrożenia: 2.6</strong>
 
 ### 1.6 @Accessors(fluent = true)
 - zmienia getProperty() na property()
@@ -104,9 +179,9 @@ public class SneakyThrowsExample implements Runnable {
   }
 }
 ```
-
+<strong>Zagrożenia: 2.7</strong>
 ### 1.8 @Cleanup
-Java 7 umożliwiła klauzulę try=with-resources, która samodzielnie zamyka użyte zasoby. Użycie adnotacji przy konkretnej zmiennej
+Java 7 umożliwiła klauzulę try-with-resources, która samodzielnie zamyka użyte zasoby. Użycie adnotacji przy konkretnej zmiennej
 (np. ``` @Cleanup InputStream in = new FileInputStream(); ```) wygeneruje podobną funkcjonalność.
 
 @Cleanup umożliwia określenie metody "sprzątającej" - ma przez to przewagę nad try-with-resources, które działa tylko na klasach implementujących interfejs AutoCloseable. Przykład:
@@ -118,13 +193,23 @@ Java 7 umożliwiła klauzulę try=with-resources, która samodzielnie zamyka uż
 Adnotacje typu @Slf4j, @Log, @CommonsLog, @Log4j, @Log4j2, @XSlf4j dodają logger do klasy i umożliwiają dostęp do niego poprzez np. ``` log.debug() ```
 
 ### 1.10 @NonNull
-Można użyć tej adnotacji przy konkretnym parametrze konstruktora - wewnątrz generowany jest kod sprawdzający czy obiekt nie jest nullem, ewentualnie rzutający NullPointerException.
+Można użyć tej adnotacji przy konkretnym parametrze konstruktora - wewnątrz generowany jest kod sprawdzający czy obiekt nie jest nullem, ewentualnie rzucający NullPointerException.
+```java
+public class NonNullExample extends Something {
+  private String name;
+  
+  public NonNullExample(@NonNull Person person) {
+    super("Hello");
+    this.name = person.getName();
+  }
+}
+```
 
 ### 1.11 @Getter(lazy=true)
 Umożliwia leniwe zaciąganie pól do obiektu. Używa java.util.concurrent.AtomicReference, dopiero przy użyciu getX() realnie otrzymuje wartość.
 
 ### 1.12 @UtilityClass
-Dodaje prywatny konstruktor rzucający wyjątkiem i dodaje "static" do metod i pól. Do zastosowania w bezstanowych klasach pomocniczych, które mają tylko statyczne metody i nie powinny mieć instancji tworzonych przez konstruktor.
+Dodaje prywatny konstruktor rzucający wyjątkiem i dołącza "static" do metod i pól. Do zastosowania w bezstanowych klasach pomocniczych, które mają tylko statyczne metody i nie powinny mieć instancji tworzonych przez konstruktor.
 Z Lombokiem:
 ```java
 @UtilityClass
@@ -260,7 +345,7 @@ Lombok domyślnie używa wszystkich pól do metody equals. Czasami jest to niepo
 Analogiczny do 2.2
 
 
-### 2.5 Stosowanie @Data bez znajomości konsekwencji
+### 2.6 Stosowanie @Data lub @Value bez znajomości konsekwencji
 Adnotacja @Data łączy funkcjonalność kilku innych:
 - @ToString
 - @EqualsAndHashCode
@@ -269,8 +354,9 @@ Adnotacja @Data łączy funkcjonalność kilku innych:
 - @RequiredArgsConstructor
 
 Należy pamiętać o 2.2, 2.4, 2.5
+@Value powoduje podobne komplikacje.
 
-### 2.6 Leniwe ładowanie kolekcji + @ToString/@EqualsAndHashCode
+### 2.7 Leniwe ładowanie kolekcji + @ToString/@EqualsAndHashCode
 
 ```java
 @Entity
@@ -289,5 +375,5 @@ public class University {
 ```
 Wywołanie University#toString spowoduje zaciągnięcie wszystkich studentów z bazy danych - może znacząco spowolnić działanie programu.
 
-### 2.7 Nieobsłużenie błędu przy @SneakyThrows.
+### 2.8 Nieobsłużenie błędu przy @SneakyThrows.
 Jeśli metoda jest oznaczona @SneakyThrows, IDE ani kompilator nie poinformują nas o tym, że jakaś linijka może powodować checked exception. W ten sposób możemy nie obsłużyć istotnego błędu. Możemy też nie dodać logów, co utrudni analizowanie kłopotliwej sytuacji.
