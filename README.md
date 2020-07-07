@@ -377,3 +377,57 @@ Wywołanie University#toString spowoduje zaciągnięcie wszystkich studentów z 
 
 ### 2.8 Nieobsłużenie błędu przy @SneakyThrows.
 Jeśli metoda jest oznaczona @SneakyThrows, IDE ani kompilator nie poinformują nas o tym, że jakaś linijka może powodować checked exception. W ten sposób możemy nie obsłużyć istotnego błędu. Możemy też nie dodać logów, co utrudni analizowanie kłopotliwej sytuacji.
+
+### 2.9 Wskazanie linijki występowanego błędu wygenerowanego kodu
+Jeśli wygenerowany kod rzuca wyjątkiem, w logach zostanie wyświetlona linijka z adnotacją. Nie będziemy mieli wglądu do konkretnej linijki wygenerowanego kodu.
+Przykład 1:
+```java
+public class LombokException {
+    private String name;
+
+    public LombokException(@NonNull String name) {
+        this.name = name;
+    }
+
+    public static void main(String[] args) {
+        var lombokEx = new LombokException(null);
+    }
+}
+```
+Logi:
+```text
+Exception in thread "main" java.lang.NullPointerException: name is marked non-null but is null
+	at pl.insert.infrastructure.infoserwis.entity.LombokException.<init>(LombokException.java:8)
+	at pl.insert.infrastructure.infoserwis.entity.LombokException.main(LombokException.java:13)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:564)
+	at com.intellij.rt.execution.application.AppMainV2.main(AppMainV2.java:131)
+```
+
+Przykład 2:
+```java
+public class LombokException2 {
+    private static class Disposeable {
+        public void dispose() {
+            throw new RuntimeException();
+        }
+    }
+
+    public static void main(String[] args) {
+        @Cleanup("dispose") var disposeable = new Disposeable();
+    }
+}
+```
+Logi:
+```text
+Exception in thread "main" java.lang.RuntimeException
+	at pl.insert.infrastructure.infoserwis.entity.LombokException2$Disposeable.dispose(LombokException2.java:8)
+	at pl.insert.infrastructure.infoserwis.entity.LombokException2.main(LombokException2.java:13)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:564)
+	at com.intellij.rt.execution.application.AppMainV2.main(AppMainV2.java:131)
+```
